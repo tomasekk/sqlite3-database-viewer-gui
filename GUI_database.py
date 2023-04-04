@@ -1,11 +1,23 @@
+###################################
+# Author: Ondrej Tomasek
+# Programmed by: Ondrej Tomasek
+# LinkedIn: linkedin.com/in/ondrat
+# Date(DD.MM.YYYY): 04.04.2023
+###################################
+# Please read README.txt before use
+###################################
+
+####################################### IMPORTS #######################################
+
 import os.path
 import tkinter as tk
 import sqlite3
 
+####################################### APP ###########################################
 class App:
     def __init__(self, master):
         self.master = master
-        self.master.title("SQLite3 Database Viewer")
+        self.master.title("SQLite3 Database Viewer by linkedin.com/in/ondrat")
 
         # Create labels for the textboxes
         label1 = tk.Label(master, text="Enter database name:")
@@ -15,13 +27,42 @@ class App:
         self.textbox1.pack()
         self.textbox1.insert(0, "db.sqlite3")
 
-        # Create labels for the textboxes
+        # Create label and entry widgets
         label2 = tk.Label(master, text="Enter table name to view:")
-        label2.pack()
-        # Create textboxes for user input
         self.textbox2 = tk.Entry(master)
-        self.textbox2.pack()
         self.textbox2.insert(0, "myapp_user")
+
+        # Place label and entry widgets side by side
+        label2.pack()
+        self.textbox2.pack()
+
+        # Create the "Or lookup available TABLES" label and checkbox
+        label4 = tk.Label(master, text="Or lookup available TABLES:")
+        # create an IntVar to represent the state of the checkbox
+        global checkbox_state
+        checkbox_state = tk.IntVar()
+        def checkbox_status():
+            # check the state of the checkbox
+            if checkbox_state.get() == 1:
+                self.textbox2.config(state="disabled")
+                self.textbox3.config(state="disabled")
+            else:
+                self.textbox2.config(state="normal")
+                self.textbox3.config(state="normal")
+        self.checkbox = tk.Checkbutton(master, variable=checkbox_state, command=checkbox_status)
+
+        # Place the label and checkbox below the first row
+        label4.pack()
+        self.checkbox.pack()
+
+
+        # Create labels for the textboxes
+        label3 = tk.Label(master, text="Enter command to execute:")
+        label3.pack()
+        # Create textboxes for user input
+        self.textbox3 = tk.Entry(master)
+        self.textbox3.pack()
+        self.textbox3.insert(0, f"SELECT * FROM {self.textbox2.get()}")
 
         # Create a button to retrieve data
         self.button = tk.Button(master, text="Retrieve Data", command=self.retrieve_data)
@@ -32,7 +73,7 @@ class App:
         label_frame.pack(pady=10)
 
         # Create a label to display the data and add it to the frame
-        self.label = tk.Label(label_frame, text="")
+        self.label = tk.Label(label_frame, text="", wraplength=int(screen_width / 3))
         self.label.pack()
 
     def retrieve_data(self):
@@ -46,19 +87,30 @@ class App:
             # Create a cursor to execute SQL queries
             self.cursor = self.conn.cursor()
             try:
-                # Execute a SELECT query
-                self.cursor.execute(f"SELECT * FROM {input2}")
+                if checkbox_state.get() == 1:
+                    try:
+                        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+                        tables = self.cursor.fetchall()
+                        table_names = [table[0] for table in tables]
+                        self.label.config(text=f"** All tables in database **\n{' || '.join(table_names)}")
 
-                # Fetch all the results
-                results = self.cursor.fetchall()
+                    except:
+                        self.label.config(text=f"No tables found!")
+                else:
+                    # Execute a SELECT query
+                    self.cursor.execute(self.textbox3.get())
 
-                # Display the results in the label
-                self.label.config(text=f"** Found database and table **\n\n{results}")
+                    # Fetch all the results
+                    results = self.cursor.fetchall()
+
+                    # Display the results in the label
+                    self.label.config(text=f"** Found database and table **\n\n{results}")
             except:
                 self.label.config(text=f"Database loaded, but table NOT found!\nEntered TABLE: {input2}")
         else:
             self.label.config(text=f"Database NOT found!\nEntered DATABASE: {input1}")
 
+####################################### TKINTER MAIN WINDOW ##################################
 # Create the Tkinter window and start the event loop
 root = tk.Tk()
 
