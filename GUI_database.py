@@ -11,12 +11,12 @@
 
 import os.path
 import tkinter as tk
-from tkinter import scrolledtext
 import sqlite3
 
 ####################################### APP ###########################################
 class App:
     def __init__(self, master):
+        # setup window and fonts
         self.master = master
         self.master.title("SQLite3 Database Viewer by linkedin.com/in/ondrat")
         #self.master.configure(bg="grey")
@@ -79,7 +79,6 @@ class App:
 
         # Create a button to retrieve data
         self.button = tk.Button(master, text="Retrieve Data", command=self.retrieve_data, bg="#4CAF50", fg="white", borderwidth=0, relief="solid", padx=10, pady=5, activebackground="#00661b")
-
         self.button.pack(pady=10)
 
         # Create a frame for the label
@@ -103,12 +102,13 @@ class App:
         # Create a connection to the database
         if os.path.exists(input1):
             self.conn = sqlite3.connect(input1)
-
             # Create a cursor to execute SQL queries
             self.cursor = self.conn.cursor()
             try:
+                # try to gain access to the database
                 if checkbox_state.get() == 1:
                     try:
+                        # try to get tables
                         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
                         tables = self.cursor.fetchall()
                         table_names = [table[0] for table in tables]
